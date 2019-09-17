@@ -1,0 +1,108 @@
+<html>
+<head>
+	<title>JS Canvas Chart for Telegram contest</title>
+	<link rel="stylesheet" href="lpt-chart-styles.css">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link href="https://fonts.googleapis.com/css?family=Roboto:300,400" rel="stylesheet">
+</head>
+<body>
+	<main class="container" id="main">
+		<h3 style="color:#bfbebe;padding:50px 0 15px;text-align:center;">JS Canvas Chart for Telegram contest</h3>
+	</main>
+
+	<script type="text/javascript" src="app.js"></script>
+	<script>
+		function getJSON(url, callback) {
+			var xmlhttp = new XMLHttpRequest();
+			xmlhttp.overrideMimeType('application/json');
+			xmlhttp.open('GET', url, true);
+			xmlhttp.onreadystatechange = function() {
+				if (xmlhttp.readyState === 4 && xmlhttp.status == '200') {
+					callback(xmlhttp.responseText);
+				}
+			}
+			xmlhttp.send(null);
+		}
+
+		var instances = [];
+
+		for (var i = 1; i < 6; i++) {
+			(function(i) {
+
+				getJSON('data/' + i + '/overview.json', function(data) {
+
+					var c = new Chart(JSON.parse(data), {
+						id: 'chart' + i,
+						name: 'Chart #' + i, // default null
+						appendTo: document.getElementById('main'),
+						chart: {
+							height: 400, // default 500
+							lineWidth: 2, // defauilt 2
+						},
+						preview: {
+							height: 80, // default 80
+							lineWidth: 1, // defauilt 1
+						},
+						class: 'lpt-chart', // Prefix for CSS classes. default 'lpt-chart'
+						gridLineWidth: 1, // defauilt 1
+						gridLines: 6, // defauilt 6
+						themeActive: 'dark', // light/dark. default 'light'
+						theme: { // defaults
+							light: {
+								background: '#fff',
+								gridColor: '#e7e9eb',
+								gridFontColor: '#8e8e93',
+								gridFont: '300 13px sans-serif',
+							},
+							dark: {
+								background: '#242f3e',
+								gridColor: '#3a4451',
+								gridFontColor: '#87909a',
+								gridFont: '300 13px sans-serif',
+							},
+						}
+					});
+
+					instances.push(c);
+					
+					if (i === 1) setInitialTheme();
+				});
+
+			})(i);
+
+		}
+
+	</script>
+
+	<div class="lpt-chart-theme-switcher" onclick="switchTeme(this);">Switch to Night Mode</div>
+
+	<script>
+		function setInitialTheme() {
+			/* I guess the switcher shouldn't be a part of app, so */
+			var options = instances[0].options,
+				switcher = document.querySelector('.lpt-chart-theme-switcher');
+
+			document.body.classList.add(options.themeActive + '-theme');
+			switcher.textContent = document.body.classList.contains('light-theme') ? 'Switch to Night Mode' : 'Switch to Day Mode';
+
+			function switchBodyClass() {
+				document.body.classList.toggle('light-theme');
+				document.body.classList.toggle('dark-theme');
+				switcher.textContent = document.body.classList.contains('light-theme') ? 'Switch to Night Mode' : 'Switch to Day Mode';
+			}
+
+			window.switchTeme = function(elem) {
+				instances.forEach(function(item) {
+					elem.textContent = 'light' === item.options.themeActive ? 'Switch to Night Mode' : 'Switch to Day Mode';
+					item.options.themeActive = 'light' === item.options.themeActive ? 'dark' : 'light';
+					switchBodyClass();
+					// update scheme & re-draw preview
+					item._updateColorScheme();
+					item._drawPreview();
+				});
+			}
+		}
+
+	</script>
+</body>
+</html>
